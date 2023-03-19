@@ -24,8 +24,8 @@ namespace Sudoku
 		Color guessed = Color.White;
 		Color given = Color.Gray;
 		Color hover = Color.Red;
-		Color hoverRow = Color.Blue;
-		Color hoverColumn = Color.Green;
+		Color hoverRow = Color.FromArgb(100, Color.Blue);
+		Color hoverColumn = Color.FromArgb(100, Color.Green);
 
 		public Form2(int openTiles)
 		{
@@ -76,18 +76,18 @@ namespace Sudoku
 		private Dictionary<int, int> getKeyMap(int givenTiles)
 		{
 			Dictionary<int, int> keyMap = new Dictionary<int, int>();
-			List<int> integers = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 			Random random = new Random();
 
 			for (int row = 1; row < 10; row++)
 			{
 				for (int column = 1; column < 10; column++)
 				{
-					List<int> numbers = getAcceptableNumbers(row, column);
+					List<int> numbers = getAcceptableNumbers(keyMap, row, column);
 					int index = random.Next(numbers.Count);
-					int selected = numbers[index];
+					int selected = numbers.Count > index ? numbers[index] : 0;
 					numbers.Remove(selected);
 					keyMap.Add(getIndex(row, column), selected);
+					
 				}
 			}
 
@@ -154,15 +154,38 @@ namespace Sudoku
 			return acceptableNumbers;
 		}
 
+		private List<int> getAcceptableNumbers(Dictionary<int, int> keyMap, int row, int column)
+		{
+			List<int> acceptableNumbers = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+			foreach (int i in getRowNumbers(keyMap, row)) { acceptableNumbers.Remove(i); }
+			foreach (int i in getColumnNumbers(keyMap, column)) { acceptableNumbers.Remove(i); }
+			return acceptableNumbers;
+		}
+
 		private int[] getRowNumbers(int row)
 		{
 			int[] numbers = new int[9];
+			int j = -1;
 			foreach (int i in getRowIndexes(row))
 			{
+				j++;
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				numbers[i] = ((Tile)button.Tag).number;
+				numbers[j] = ((Tile)button.Tag).number;
+			}
+			return numbers;
+		}
+
+		private int[] getRowNumbers(Dictionary<int, int> keyMap, int row)
+		{
+			int[] numbers = new int[9];
+			int j = -1;
+			foreach (int i in getRowIndexes(row))
+			{
+				j++;
+				if (!keyMap.ContainsKey(i)) continue;
+				numbers[j] = keyMap[i];
 			}
 			return numbers;
 		}
@@ -170,12 +193,28 @@ namespace Sudoku
 		private int[] getColumnNumbers(int column)
 		{
 			int[] numbers = new int[9];
+			int j = -1;
 			foreach (int i in getColumnIndexes(column))
 			{
+				j++;
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				numbers[i] = ((Tile)button.Tag).number;
+				numbers[j] = ((Tile)button.Tag).number;
+				MessageBox.Show("j " + j + " number " + numbers[j]);
+			}
+			return numbers;
+		}
+
+		private int[] getColumnNumbers(Dictionary<int, int> keyMap, int row)
+		{
+			int[] numbers = new int[9];
+			int j = -1;
+			foreach (int i in getColumnIndexes(row))
+			{
+				j++;
+				if (!keyMap.ContainsKey(i)) continue;
+				numbers[j] = keyMap[i];
 			}
 			return numbers;
 		}
