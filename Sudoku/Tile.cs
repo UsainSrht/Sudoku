@@ -10,8 +10,9 @@ namespace Sudoku
 	{
 
 		public int index { get; set; }
-		public bool isGiven { get; set; }
-
 		public int number { get; set; }
+		public bool isGiven { get; set; }
+		public bool isManual { get; set; }
+		
 	}
 }

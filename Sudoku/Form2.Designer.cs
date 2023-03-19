@@ -28,21 +28,20 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.SuspendLayout();
+			SuspendLayout();
 			// 
 			// Form2
 			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(384, 361);
-			this.KeyPreview = true;
-			this.Name = "Form2";
-			this.Text = "Sudoku";
-			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form2_FormClosing);
-			this.Shown += new System.EventHandler(this.Form2_Shown);
-			this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form2_KeyPress);
-			this.ResumeLayout(false);
-
+			AutoScaleDimensions = new SizeF(7F, 15F);
+			AutoScaleMode = AutoScaleMode.Font;
+			ClientSize = new Size(563, 361);
+			KeyPreview = true;
+			Name = "Form2";
+			Text = "Sudoku";
+			FormClosing += Form2_FormClosing;
+			Shown += Form2_Shown;
+			KeyPress += Form2_KeyPress;
+			ResumeLayout(false);
 		}
 
 		#endregion
