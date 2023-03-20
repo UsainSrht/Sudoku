@@ -13,6 +13,8 @@ namespace Sudoku
 {
 	public partial class Form2 : Form
 	{
+		int debugValue = 0;
+
 		int tileWidth = 40;
 		int tileHeight = 40;
 		int openTiles;
@@ -26,6 +28,7 @@ namespace Sudoku
 		Color hover = Color.Red;
 		Color hoverRow = Color.FromArgb(100, Color.Blue);
 		Color hoverColumn = Color.FromArgb(100, Color.Green);
+		Color hover3by3Square = Color.FromArgb(100, Color.Purple);
 
 		public Form2(int openTiles)
 		{
@@ -67,8 +70,9 @@ namespace Sudoku
 				tile.number = keyMap.ContainsKey(i) ? keyMap[i] : 0;
 				dynamicButton.Tag = tile;
 				dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
+				if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
 				Controls.Add(dynamicButton);
-				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
+				//await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
 			}
 
 		}
@@ -87,7 +91,7 @@ namespace Sudoku
 					int selected = numbers.Count > index ? numbers[index] : 0;
 					numbers.Remove(selected);
 					keyMap.Add(getIndex(row, column), selected);
-					
+
 				}
 			}
 
@@ -151,6 +155,7 @@ namespace Sudoku
 			List<int> acceptableNumbers = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 			foreach (int i in getRowNumbers(row)) { acceptableNumbers.Remove(i); }
 			foreach (int i in getColumnNumbers(column)) { acceptableNumbers.Remove(i); }
+			foreach (int i in get3by3SquareNumbers(getIndex(row, column))) { acceptableNumbers.Remove(i); }
 			return acceptableNumbers;
 		}
 
@@ -159,6 +164,7 @@ namespace Sudoku
 			List<int> acceptableNumbers = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 			foreach (int i in getRowNumbers(keyMap, row)) { acceptableNumbers.Remove(i); }
 			foreach (int i in getColumnNumbers(keyMap, column)) { acceptableNumbers.Remove(i); }
+			foreach (int i in get3by3SquareNumbers(keyMap, getIndex(row, column))) { acceptableNumbers.Remove(i); }
 			return acceptableNumbers;
 		}
 
@@ -201,7 +207,6 @@ namespace Sudoku
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
 				numbers[j] = ((Tile)button.Tag).number;
-				MessageBox.Show("j " + j + " number " + numbers[j]);
 			}
 			return numbers;
 		}
@@ -211,6 +216,34 @@ namespace Sudoku
 			int[] numbers = new int[9];
 			int j = -1;
 			foreach (int i in getColumnIndexes(row))
+			{
+				j++;
+				if (!keyMap.ContainsKey(i)) continue;
+				numbers[j] = keyMap[i];
+			}
+			return numbers;
+		}
+
+		private int[] get3by3SquareNumbers(int index)
+		{
+			int[] numbers = new int[9];
+			int j = -1;
+			foreach (int i in get3by3SquareIndexes(index))
+			{
+				j++;
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button button = (Button)controlArray[0];
+				numbers[j] = ((Tile)button.Tag).number;
+			}
+			return numbers;
+		}
+
+		private int[] get3by3SquareNumbers(Dictionary<int, int> keyMap, int index)
+		{
+			int[] numbers = new int[9];
+			int j = -1;
+			foreach (int i in get3by3SquareIndexes(index))
 			{
 				j++;
 				if (!keyMap.ContainsKey(i)) continue;
@@ -239,6 +272,32 @@ namespace Sudoku
 			return numbers;
 		}
 
+		private int[] get3by3SquareIndexes(int index)
+		{
+			int[] numbers = new int[9];
+			int column = getColumn(index);
+			int row = getRow(index);
+			double y = row / 3f;
+			int startRow = (int)Math.Ceiling(y) * 3 - 2;
+			double x = column / 3f;
+			int startColumn = (int)Math.Ceiling(x) * 3 - 2;
+			int startIndex = getIndex(startRow, startColumn);
+			numbers[0] = startIndex;
+			numbers[1] = startIndex + 1;
+			numbers[2] = startIndex + 2;
+			numbers[3] = startIndex + 9;
+			numbers[4] = startIndex + 10;
+			numbers[5] = startIndex + 11;
+			numbers[6] = startIndex + 18;
+			numbers[7] = startIndex + 19;
+			numbers[8] = startIndex + 20;
+			/*label1.Text = "x: " + x + " y: " + y + "\n"
+				+ "row: " + row + " column: " + column + "\n"
+				+ "startRow: " + startRow + " startColumn: " + startColumn + "\n"
+				+ "startIndex: " + startIndex;*/
+			return numbers;
+		}
+
 		private void Button_MouseClick(object sender, EventArgs e)
 		{
 			Button button = (Button)sender;
@@ -254,11 +313,12 @@ namespace Sudoku
 				+ "acceptableNumbers: " + String.Join(' ', numbers) + "\n"
 				+ "rowNumbers: " + String.Join(' ', rownumbers) + "\n"
 				+ "columnNumbers: " + String.Join(' ', columnnumbers) + "\n"
+				+ "3by3SquareNumbers: " + String.Join(' ', get3by3SquareNumbers(index)) + "\n"
 				);
 		}
 
 		private void Button_MouseEnter(object sender, EventArgs e)
-		{ 
+		{
 			Button button = (Button)sender;
 			Tile tile = (Tile)button.Tag;
 			int index = tile.index;
@@ -277,6 +337,13 @@ namespace Sudoku
 				if (controlArray.Length == 0) continue;
 				Button btn = (Button)controlArray[0];
 				btn.BackColor = hoverColumn;
+			}
+			foreach (int i in get3by3SquareIndexes(index))
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button btn = (Button)controlArray[0];
+				btn.BackColor = hover3by3Square;
 			}
 			button.BackColor = hover;
 		}
@@ -302,6 +369,13 @@ namespace Sudoku
 				Button btn = (Button)controlArray[0];
 				btn.BackColor = getButtonColor(btn, false);
 			}
+			foreach (int i in get3by3SquareIndexes(index))
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button btn = (Button)controlArray[0];
+				btn.BackColor = getButtonColor(btn, false);
+			}
 			button.BackColor = getButtonColor(button, false);
 		}
 
@@ -313,9 +387,13 @@ namespace Sudoku
 			return blank;
 		}
 
-		private void Button_GotFocus(object sender, EventArgs e) {
-
-			this.focusedTile = ((Tile)((Button)sender).Tag).index;
+		private void Button_GotFocus(object sender, EventArgs e)
+		{
+			Button button = sender as Button;
+			if (button.Name.Contains("dynamic"))
+			{
+				this.focusedTile = ((Tile)button.Tag).index;
+			}
 		}
 
 		private void Form2_FormClosing(object sender, FormClosingEventArgs e)
@@ -346,10 +424,29 @@ namespace Sudoku
 				catch { }
 				if (key > 0)
 				{
-					Button button = (Button)Controls.Find("dynamicButton" + focusedTile, false)[0];
-					button.Text = key.ToString();
-					Tile tile = (Tile)button.Tag;
-					tile.isManual = true;
+					putNumber(focusedTile, key);
+				}
+			}
+		}
+
+		private void putNumber(int index, int number)
+		{
+			Button button = (Button)Controls.Find("dynamicButton" + index, false)[0];
+			button.Text = number.ToString();
+			Tile tile = (Tile)button.Tag;
+			//tile.number = number;
+			tile.isManual = true;
+		}
+
+		private void Button_PutNumber(object sender, MouseEventArgs e)
+		{
+			if (focusedTile > 0)
+			{
+				Button button = (Button)sender;
+				int key = Int32.Parse((String)button.Tag);
+				if (key > 0)
+				{
+					putNumber(focusedTile, key);
 				}
 			}
 		}
