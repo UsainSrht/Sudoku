@@ -39,13 +39,14 @@
 			putnumber_button8 = new Button();
 			putnumber_button9 = new Button();
 			panel1 = new Panel();
+			button1 = new Button();
 			panel1.SuspendLayout();
 			SuspendLayout();
 			// 
 			// label1
 			// 
 			label1.AutoSize = true;
-			label1.Location = new Point(454, 9);
+			label1.Location = new Point(388, 9);
 			label1.Name = "label1";
 			label1.Size = new Size(38, 15);
 			label1.TabIndex = 0;
@@ -166,11 +167,22 @@
 			panel1.Size = new Size(230, 230);
 			panel1.TabIndex = 10;
 			// 
+			// button1
+			// 
+			button1.Location = new Point(490, 23);
+			button1.Name = "button1";
+			button1.Size = new Size(98, 23);
+			button1.TabIndex = 11;
+			button1.Text = "Clear Numbers";
+			button1.UseVisualStyleBackColor = true;
+			button1.Click += button1_Click;
+			// 
 			// Form2
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(653, 361);
+			Controls.Add(button1);
 			Controls.Add(panel1);
 			Controls.Add(label1);
 			KeyPreview = true;
@@ -197,5 +209,6 @@
 		private Button putnumber_button8;
 		private Button putnumber_button9;
 		private Panel panel1;
+		private Button button1;
 	}
 }

@@ -69,12 +69,19 @@ namespace Sudoku
 				tile.index = i;
 				tile.number = keyMap.ContainsKey(i) ? keyMap[i] : 0;
 				dynamicButton.Tag = tile;
-				dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
-				if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
+				//dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
+				//if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
 				Controls.Add(dynamicButton);
-				//await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
+				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
 			}
-
+			foreach (int i in keyMap.Keys)
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button button = (Button)controlArray[0];
+				button.Text = keyMap[i].ToString();
+				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(150));
+			}
 		}
 
 		private Dictionary<int, int> getKeyMap(int givenTiles)
@@ -82,7 +89,7 @@ namespace Sudoku
 			Dictionary<int, int> keyMap = new Dictionary<int, int>();
 			Random random = new Random();
 
-			for (int row = 1; row < 10; row++)
+			/*for (int row = 1; row < 10; row++)
 			{
 				for (int column = 1; column < 10; column++)
 				{
@@ -92,6 +99,22 @@ namespace Sudoku
 					numbers.Remove(selected);
 					keyMap.Add(getIndex(row, column), selected);
 
+				}
+			}*/
+			foreach (int i in new List<int>() { 0, 3, 6, 27, 30, 33, 72, 75, 78 })
+			{
+				foreach (int index in get3by3SquareIndexes(i))
+				{
+					List<int> numbers = getAcceptableNumbers(keyMap, index);
+					int selector = random.Next(numbers.Count);
+					int selected = numbers.Count > selector ? numbers[selector] : 0;
+					/*MessageBox.Show(
+						"acceptables: (" + numbers.Count + ") " + String.Join(' ', numbers) + "\n"
+						+ "selector: " + selector + " selected " + selected + "\n"
+						+ "i: " + i + " index: " + index
+						);*/
+					numbers.Remove(selected);
+					keyMap.Add(index, selected);
 				}
 			}
 
@@ -157,6 +180,12 @@ namespace Sudoku
 			foreach (int i in getColumnNumbers(column)) { acceptableNumbers.Remove(i); }
 			foreach (int i in get3by3SquareNumbers(getIndex(row, column))) { acceptableNumbers.Remove(i); }
 			return acceptableNumbers;
+		}
+
+		private List<int> getAcceptableNumbers(Dictionary<int, int> keyMap, int index)
+		{
+			int[] ints = getRowAndColumn(index);
+			return getAcceptableNumbers(keyMap, ints[0], ints[1]);
 		}
 
 		private List<int> getAcceptableNumbers(Dictionary<int, int> keyMap, int row, int column)
@@ -306,7 +335,7 @@ namespace Sudoku
 			List<int> numbers = getAcceptableNumbers(index);
 			int[] rownumbers = getRowNumbers(getRow(index));
 			int[] columnnumbers = getColumnNumbers(getColumn(index));
-			MessageBox.Show("number: " + tile.number + "\n"
+			/*MessageBox.Show("number: " + tile.number + "\n"
 				+ "isGiven: " + tile.isGiven + "\n"
 				+ "index: " + index + "\n"
 				+ "row: " + getRow(index) + " column: " + getColumn(index) + "\n"
@@ -314,7 +343,7 @@ namespace Sudoku
 				+ "rowNumbers: " + String.Join(' ', rownumbers) + "\n"
 				+ "columnNumbers: " + String.Join(' ', columnnumbers) + "\n"
 				+ "3by3SquareNumbers: " + String.Join(' ', get3by3SquareNumbers(index)) + "\n"
-				);
+				);*/
 		}
 
 		private void Button_MouseEnter(object sender, EventArgs e)
@@ -448,6 +477,17 @@ namespace Sudoku
 				{
 					putNumber(focusedTile, key);
 				}
+			}
+		}
+
+		private void button1_Click(object sender, EventArgs e)
+		{
+			for (int i = 0; i < 81; i++)
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button button = (Button)controlArray[0];
+				button.Text = null;
 			}
 		}
 	}
