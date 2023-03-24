@@ -11,6 +11,8 @@ namespace Sudoku
 
 		public int index { get; set; }
 		public int number { get; set; }
+
+		public int manualNumber { get; set; }
 		public bool isGiven { get; set; }
 		public bool isManual { get; set; }
 		

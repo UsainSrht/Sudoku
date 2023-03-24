@@ -40,6 +40,15 @@
 			putnumber_button9 = new Button();
 			panel1 = new Panel();
 			button1 = new Button();
+			button2 = new Button();
+			button3 = new Button();
+			button4 = new Button();
+			button5 = new Button();
+			button6 = new Button();
+			button7 = new Button();
+			button8 = new Button();
+			checkBox1 = new CheckBox();
+			button9 = new Button();
 			panel1.SuspendLayout();
 			SuspendLayout();
 			// 
@@ -169,7 +178,7 @@
 			// 
 			// button1
 			// 
-			button1.Location = new Point(490, 23);
+			button1.Location = new Point(606, 5);
 			button1.Name = "button1";
 			button1.Size = new Size(98, 23);
 			button1.TabIndex = 11;
@@ -177,11 +186,113 @@
 			button1.UseVisualStyleBackColor = true;
 			button1.Click += button1_Click;
 			// 
+			// button2
+			// 
+			button2.Location = new Point(388, 67);
+			button2.Name = "button2";
+			button2.Size = new Size(128, 23);
+			button2.TabIndex = 12;
+			button2.Text = "Put Random Number";
+			button2.UseVisualStyleBackColor = true;
+			button2.Click += button2_Click;
+			// 
+			// button3
+			// 
+			button3.Location = new Point(606, 38);
+			button3.Name = "button3";
+			button3.Size = new Size(98, 23);
+			button3.TabIndex = 13;
+			button3.Text = "Clear Number";
+			button3.UseVisualStyleBackColor = true;
+			button3.Click += button3_Click;
+			// 
+			// button4
+			// 
+			button4.Location = new Point(522, 67);
+			button4.Name = "button4";
+			button4.Size = new Size(75, 23);
+			button4.TabIndex = 14;
+			button4.Text = "Next";
+			button4.UseVisualStyleBackColor = true;
+			button4.Click += button4_Click;
+			// 
+			// button5
+			// 
+			button5.Location = new Point(522, 38);
+			button5.Name = "button5";
+			button5.Size = new Size(78, 23);
+			button5.TabIndex = 15;
+			button5.Text = "Numbers";
+			button5.UseVisualStyleBackColor = true;
+			button5.Click += button5_Click;
+			// 
+			// button6
+			// 
+			button6.Location = new Point(606, 67);
+			button6.Name = "button6";
+			button6.Size = new Size(98, 23);
+			button6.TabIndex = 16;
+			button6.Text = "Back";
+			button6.UseVisualStyleBackColor = true;
+			button6.Click += button6_Click;
+			// 
+			// button7
+			// 
+			button7.Location = new Point(624, 104);
+			button7.Name = "button7";
+			button7.Size = new Size(80, 23);
+			button7.TabIndex = 17;
+			button7.Text = "Validate";
+			button7.UseVisualStyleBackColor = true;
+			button7.Click += button7_Click;
+			// 
+			// button8
+			// 
+			button8.Location = new Point(624, 133);
+			button8.Name = "button8";
+			button8.Size = new Size(80, 23);
+			button8.TabIndex = 18;
+			button8.Text = "isAcceptable";
+			button8.UseVisualStyleBackColor = true;
+			button8.Click += button8_Click;
+			// 
+			// checkBox1
+			// 
+			checkBox1.AutoSize = true;
+			checkBox1.Checked = true;
+			checkBox1.CheckState = CheckState.Checked;
+			checkBox1.Location = new Point(624, 330);
+			checkBox1.Name = "checkBox1";
+			checkBox1.Size = new Size(58, 19);
+			checkBox1.TabIndex = 19;
+			checkBox1.Text = "Hover";
+			checkBox1.UseVisualStyleBackColor = true;
+			checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+			// 
+			// button9
+			// 
+			button9.Location = new Point(624, 161);
+			button9.Name = "button9";
+			button9.Size = new Size(80, 23);
+			button9.TabIndex = 20;
+			button9.Text = "reGenerate";
+			button9.UseVisualStyleBackColor = true;
+			button9.Click += button9_Click;
+			// 
 			// Form2
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
-			ClientSize = new Size(653, 361);
+			ClientSize = new Size(716, 361);
+			Controls.Add(button9);
+			Controls.Add(checkBox1);
+			Controls.Add(button8);
+			Controls.Add(button7);
+			Controls.Add(button6);
+			Controls.Add(button5);
+			Controls.Add(button4);
+			Controls.Add(button3);
+			Controls.Add(button2);
 			Controls.Add(button1);
 			Controls.Add(panel1);
 			Controls.Add(label1);
@@ -210,5 +321,14 @@
 		private Button putnumber_button9;
 		private Panel panel1;
 		private Button button1;
+		private Button button2;
+		private Button button3;
+		private Button button4;
+		private Button button5;
+		private Button button6;
+		private Button button7;
+		private Button button8;
+		private CheckBox checkBox1;
+		private Button button9;
 	}
 }

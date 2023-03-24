@@ -21,6 +21,7 @@ namespace Sudoku
 		int focusedTile;
 
 		bool appClosing = false;
+		bool isHoverEnabled = true;
 
 		Color blank = Color.White;
 		Color guessed = Color.White;
@@ -52,6 +53,20 @@ namespace Sudoku
 		private async void createTiles()
 		{
 			Dictionary<int, int> keyMap = getKeyMap(openTiles);
+			createTiles(keyMap);
+
+			/*foreach (int i in keyMap.Keys)
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
+				if (controlArray.Length == 0) continue;
+				Button button = (Button)controlArray[0];
+				button.Text = keyMap[i].ToString();
+				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
+			}*/
+		}
+
+		private async void createTiles(Dictionary<int, int> keyMap)
+		{
 			for (int i = 0; i < 81; i++)
 			{
 				Button dynamicButton = new Button();
@@ -69,18 +84,35 @@ namespace Sudoku
 				tile.index = i;
 				tile.number = keyMap.ContainsKey(i) ? keyMap[i] : 0;
 				dynamicButton.Tag = tile;
-				//dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
-				//if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
+				dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
+				if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
 				Controls.Add(dynamicButton);
 				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
 			}
-			foreach (int i in keyMap.Keys)
+
+			while (getZeros(keyMap).Count != 0)
+			{
+				debugValue++;
+				label1.Text = "try " + debugValue.ToString();
+				keyMap = getKeyMap(openTiles);
+				List<int> zeros = getZeros(keyMap);
+				if (zeros.Count == 0)
+				{
+					fillTiles(keyMap);
+					return;
+				}
+				//await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(30));
+			}
+		}
+
+		private void fillTiles(Dictionary<int, int> keyMap)
+		{
+			for (int i = 0; i < 81; i++)
 			{
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				button.Text = keyMap[i].ToString();
-				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(150));
+				button.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
 			}
 		}
 
@@ -89,7 +121,7 @@ namespace Sudoku
 			Dictionary<int, int> keyMap = new Dictionary<int, int>();
 			Random random = new Random();
 
-			/*for (int row = 1; row < 10; row++)
+			for (int row = 1; row < 10; row++)
 			{
 				for (int column = 1; column < 10; column++)
 				{
@@ -100,32 +132,92 @@ namespace Sudoku
 					keyMap.Add(getIndex(row, column), selected);
 
 				}
-			}*/
-			foreach (int i in new List<int>() { 0, 3, 6, 27, 30, 33, 72, 75, 78 })
+			}
+
+			/*foreach (int i in new List<int>() { 0, 3, 6, 27, 30, 33, 72, 75, 78 })
 			{
 				foreach (int index in get3by3SquareIndexes(i))
 				{
 					List<int> numbers = getAcceptableNumbers(keyMap, index);
 					int selector = random.Next(numbers.Count);
 					int selected = numbers.Count > selector ? numbers[selector] : 0;
-					/*MessageBox.Show(
-						"acceptables: (" + numbers.Count + ") " + String.Join(' ', numbers) + "\n"
-						+ "selector: " + selector + " selected " + selected + "\n"
-						+ "i: " + i + " index: " + index
-						);*/
 					numbers.Remove(selected);
 					keyMap.Add(index, selected);
 				}
-			}
+			}*/
 
 			return keyMap;
 		}
 
+		private void fillGaps(Dictionary<int, int> keyMap, HashSet<int> indexes)
+		{
+			Random random = new Random();
+			foreach (int i in indexes)
+			{
+				List<int> numbers = getAcceptableNumbers(keyMap, i);
+				int index = random.Next(numbers.Count);
+				int selected = numbers.Count > index ? numbers[index] : 0;
+				numbers.Remove(selected);
+				keyMap[i] = selected;
+			}
+		}
+
+		private List<int> getZeros(Dictionary<int, int> keyMap)
+		{
+			List<int> zeros = new List<int>();
+			int j = -1;
+			foreach (int i in keyMap.Keys)
+			{
+				if (keyMap[i] == 0)
+				{
+					j++;
+					zeros.Add(keyMap[i]);
+				}
+			}
+			return zeros;
+		}
+
+		private void destroyRowColumnSquare(int index)
+		{
+			foreach (int i in getRowIndexes(getRow(index)))
+			{
+				clearTile(i);
+			}
+			foreach (int i in getColumnIndexes(getColumn(index)))
+			{
+				clearTile(i);
+			}
+			foreach (int i in get3by3SquareIndexes(index))
+			{
+				clearTile(i);
+			}
+		}
+
+		private HashSet<int> destroyRowColumnSquare(Dictionary<int, int> keyMap, int index)
+		{
+			HashSet<int> indexes = new HashSet<int>();
+			foreach (int i in getRowIndexes(getRow(index)))
+			{
+				keyMap.Remove(i);
+				indexes.Add(i);
+			}
+			foreach (int i in getColumnIndexes(getColumn(index)))
+			{
+				keyMap.Remove(i);
+				indexes.Add(i);
+			}
+			foreach (int i in get3by3SquareIndexes(index))
+			{
+				keyMap.Remove(i);
+				indexes.Add(i);
+			}
+			return indexes;
+		}
+
 		private bool isNumberAcceptable(int index, int number)
 		{
-			double x = index / 9;
-			int row = (int)Math.Ceiling(x);
-			int column = index % 9;
+			int row = getRow(index);
+			int column = getColumn(index);
 			List<int> rownumbers = new List<int>();
 			foreach (int i in getRowNumbers(row))
 			{
@@ -137,6 +229,12 @@ namespace Sudoku
 			{
 				if (columnnumbers.Contains(i)) return false;
 				rownumbers.Add(i);
+			}
+			List<int> threeby3squarenumbers = new List<int>();
+			foreach (int i in get3by3SquareNumbers(column))
+			{
+				if (threeby3squarenumbers.Contains(i)) return false;
+				threeby3squarenumbers.Add(i);
 			}
 			return true;
 		}
@@ -207,7 +305,10 @@ namespace Sudoku
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				numbers[j] = ((Tile)button.Tag).number;
+				Tile tile = (Tile)button.Tag;
+				if (tile.isManual) numbers[j] = tile.manualNumber;
+				else numbers[j] = tile.number;
+
 			}
 			return numbers;
 		}
@@ -235,7 +336,9 @@ namespace Sudoku
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				numbers[j] = ((Tile)button.Tag).number;
+				Tile tile = (Tile)button.Tag;
+				if (tile.isManual) numbers[j] = tile.manualNumber;
+				else numbers[j] = tile.number;
 			}
 			return numbers;
 		}
@@ -263,7 +366,9 @@ namespace Sudoku
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				numbers[j] = ((Tile)button.Tag).number;
+				Tile tile = (Tile)button.Tag;
+				if (tile.isManual) numbers[j] = tile.manualNumber;
+				else numbers[j] = tile.number;
 			}
 			return numbers;
 		}
@@ -348,6 +453,7 @@ namespace Sudoku
 
 		private void Button_MouseEnter(object sender, EventArgs e)
 		{
+			if (!isHoverEnabled) return;
 			Button button = (Button)sender;
 			Tile tile = (Tile)button.Tag;
 			int index = tile.index;
@@ -379,6 +485,7 @@ namespace Sudoku
 
 		private void Button_MouseLeave(object sender, EventArgs e)
 		{
+			if (!isHoverEnabled) return;
 			Button button = (Button)sender;
 			Tile tile = (Tile)button.Tag;
 			int index = tile.index;
@@ -418,7 +525,7 @@ namespace Sudoku
 
 		private void Button_GotFocus(object sender, EventArgs e)
 		{
-			Button button = sender as Button;
+			Button button = (Button)sender;
 			if (button.Name.Contains("dynamic"))
 			{
 				this.focusedTile = ((Tile)button.Tag).index;
@@ -463,13 +570,13 @@ namespace Sudoku
 			Button button = (Button)Controls.Find("dynamicButton" + index, false)[0];
 			button.Text = number.ToString();
 			Tile tile = (Tile)button.Tag;
-			//tile.number = number;
+			tile.manualNumber = number;
 			tile.isManual = true;
 		}
 
 		private void Button_PutNumber(object sender, MouseEventArgs e)
 		{
-			if (focusedTile > 0)
+			if (focusedTile > -1)
 			{
 				Button button = (Button)sender;
 				int key = Int32.Parse((String)button.Tag);
@@ -484,11 +591,129 @@ namespace Sudoku
 		{
 			for (int i = 0; i < 81; i++)
 			{
+				clearTile(i);
+			}
+		}
+
+		private void button2_Click(object sender, EventArgs e)
+		{
+			if (focusedTile > -1)
+			{
+				Random random = new Random();
+				List<int> numbers = getAcceptableNumbers(focusedTile);
+				if (numbers.Count > 0)
+				{
+					int number = numbers[random.Next(numbers.Count)];
+					putNumber(focusedTile, number);
+					label1.Text = "selected " + number + "\n out of (" + numbers.Count + ") " +
+						String.Join(' ', numbers);
+				}
+				else label1.Text = "couldn't find a valid number";
+			}
+		}
+
+		private void button4_Click(object sender, EventArgs e)
+		{
+			if (focusedTile > -1)
+			{
+				focusedTile++;
+				button2_Click(sender, e);
+			}
+		}
+
+		private void button3_Click(object sender, EventArgs e)
+		{
+			clearTile(focusedTile);
+		}
+
+		private void button6_Click(object sender, EventArgs e)
+		{
+			if (focusedTile > -1)
+			{
+				button3_Click(sender, e);
+				focusedTile--;
+			}
+		}
+
+		private void button5_Click(object sender, EventArgs e)
+		{
+			List<int> numbers = getAcceptableNumbers(focusedTile);
+			if (numbers.Count > 0)
+				label1.Text = "(" + numbers.Count + ") " + String.Join(' ', numbers);
+			else label1.Text = "couldn't find a valid number";
+		}
+
+		private void button7_Click(object sender, EventArgs e)
+		{
+			if (validate())
+			{
+				MessageBox.Show("well done");
+			}
+			else MessageBox.Show("nope");
+		}
+
+		private bool validate()
+		{
+			for (int i = 0; i < 81; i++)
+			{
 				Control[] controlArray = Controls.Find("dynamicButton" + i, false);
 				if (controlArray.Length == 0) continue;
 				Button button = (Button)controlArray[0];
-				button.Text = null;
+				Tile tile = (Tile)button.Tag;
+				int number;
+				if (tile.isManual) number = tile.manualNumber;
+				else number = tile.number;
+				if (!isNumberAcceptable(i, number)) return false;
 			}
+			return true;
+		}
+
+		private void button8_Click(object sender, EventArgs e)
+		{
+			if (focusedTile > -1)
+			{
+				Control[] controlArray = Controls.Find("dynamicButton" + focusedTile, false);
+				if (controlArray.Length == 0) return;
+				Button button = (Button)controlArray[0];
+				Tile tile = (Tile)button.Tag;
+				int number;
+				if (tile.isManual) number = tile.manualNumber;
+				else number = tile.number;
+				MessageBox.Show(isNumberAcceptable(focusedTile, number).ToString());
+			}
+		}
+
+		private void checkBox1_CheckedChanged(object sender, EventArgs e)
+		{
+			isHoverEnabled = checkBox1.Checked;
+		}
+
+		private void clearTile(int index)
+		{
+			Control[] controlArray = Controls.Find("dynamicButton" + index, false);
+			if (controlArray.Length == 0) return;
+			Button button = (Button)controlArray[0];
+			button.Text = null;
+			Tile tile = (Tile)button.Tag;
+			tile.manualNumber = 0;
+			tile.number = 0;
+		}
+
+		private void button9_Click(object sender, EventArgs e)
+		{
+			while (true)
+			{
+				debugValue++;
+				Dictionary<int, int> keyMap = getKeyMap(openTiles);
+				List<int> zeros = getZeros(keyMap);
+				if (zeros.Count == 0)
+				{
+					fillTiles(keyMap);
+					return;
+				}
+				label1.Text = "try " + debugValue + " zeros " + zeros.Count;
+			}
+			
 		}
 	}
 }
