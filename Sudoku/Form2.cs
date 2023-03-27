@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -52,8 +53,8 @@ namespace Sudoku
 
 		private async void createTiles()
 		{
-			Dictionary<int, int> keyMap = getKeyMap(openTiles);
-			createTiles(keyMap);
+			Dictionary<int, int> keyMap = getKeyMap();
+			createTiles(keyMap, openTiles);
 
 			/*foreach (int i in keyMap.Keys)
 			{
@@ -65,8 +66,15 @@ namespace Sudoku
 			}*/
 		}
 
-		private async void createTiles(Dictionary<int, int> keyMap)
+		private async void createTiles(Dictionary<int, int> keyMap, int givenTileCount)
 		{
+			Random random = new Random();
+			HashSet<int> givenTileIndexes = new HashSet<int>();
+			while (givenTileIndexes.Count < givenTileCount)
+			{
+				int index = random.Next(0, 80);
+				if (!givenTileIndexes.Contains(index)) givenTileIndexes.Add(index);
+			}
 			for (int i = 0; i < 81; i++)
 			{
 				Button dynamicButton = new Button();
@@ -81,27 +89,20 @@ namespace Sudoku
 				dynamicButton.MouseEnter += new EventHandler(this.Button_MouseEnter);
 				dynamicButton.MouseLeave += new EventHandler(this.Button_MouseLeave);
 				Tile tile = new Tile();
+				if (givenTileIndexes.Contains(i))
+				{
+					tile.isGiven = true;
+					dynamicButton.Text = keyMap[i].ToString();
+					dynamicButton.BackColor = given;
+					dynamicButton.Enabled = false;
+				}
 				tile.index = i;
-				tile.number = keyMap.ContainsKey(i) ? keyMap[i] : 0;
+				tile.number = keyMap[i];
 				dynamicButton.Tag = tile;
-				dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
-				if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
+				//dynamicButton.Text = keyMap.ContainsKey(i) ? keyMap[i].ToString() : "0";
+				//if (tile.number == 0) dynamicButton.BackColor = Color.DarkRed;
 				Controls.Add(dynamicButton);
 				await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(3));
-			}
-
-			while (getZeros(keyMap).Count != 0)
-			{
-				debugValue++;
-				label1.Text = "try " + debugValue.ToString();
-				keyMap = getKeyMap(openTiles);
-				List<int> zeros = getZeros(keyMap);
-				if (zeros.Count == 0)
-				{
-					fillTiles(keyMap);
-					return;
-				}
-				//await Task.Run(() => new System.Threading.ManualResetEvent(false).WaitOne(30));
 			}
 		}
 
@@ -116,7 +117,7 @@ namespace Sudoku
 			}
 		}
 
-		private Dictionary<int, int> getKeyMap(int givenTiles)
+		private Dictionary<int, int> getKeyMap()
 		{
 			Dictionary<int, int> keyMap = new Dictionary<int, int>();
 			Random random = new Random();
@@ -128,12 +129,25 @@ namespace Sudoku
 					List<int> numbers = getAcceptableNumbers(keyMap, row, column);
 					int index = random.Next(numbers.Count);
 					int selected = numbers.Count > index ? numbers[index] : 0;
-					numbers.Remove(selected);
 					keyMap.Add(getIndex(row, column), selected);
 
 				}
 			}
 
+			while (getZeros(keyMap).Count != 0) {
+				debugValue++;
+				label1.Text = "try " + debugValue;
+				foreach (int index in getZeros(keyMap)) {
+					foreach (int zero in destroyRowColumnSquare(keyMap, index)) {
+						List<int> numbers = getAcceptableNumbers(keyMap, zero);
+						if (numbers.Count == 0) return getKeyMap();
+						int listIndex = random.Next(numbers.Count);
+						int selected = numbers[listIndex];
+						keyMap[zero] = selected;
+					}
+				}
+			}
+			
 			/*foreach (int i in new List<int>() { 0, 3, 6, 27, 30, 33, 72, 75, 78 })
 			{
 				foreach (int index in get3by3SquareIndexes(i))
@@ -569,6 +583,7 @@ namespace Sudoku
 		{
 			Button button = (Button)Controls.Find("dynamicButton" + index, false)[0];
 			button.Text = number.ToString();
+			button.BackColor = guessed;
 			Tile tile = (Tile)button.Tag;
 			tile.manualNumber = number;
 			tile.isManual = true;
@@ -704,7 +719,7 @@ namespace Sudoku
 			while (true)
 			{
 				debugValue++;
-				Dictionary<int, int> keyMap = getKeyMap(openTiles);
+				Dictionary<int, int> keyMap = getKeyMap();
 				List<int> zeros = getZeros(keyMap);
 				if (zeros.Count == 0)
 				{
@@ -713,7 +728,15 @@ namespace Sudoku
 				}
 				label1.Text = "try " + debugValue + " zeros " + zeros.Count;
 			}
-			
+
+		}
+
+		private void button10_Click(object sender, EventArgs e)
+		{
+			if (focusedTile > -1)
+			{
+				destroyRowColumnSquare(focusedTile);
+			}
 		}
 	}
 }
